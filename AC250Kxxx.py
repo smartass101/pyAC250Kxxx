@@ -202,7 +202,7 @@ class Device:
         The method first retries the query 3 times on failure
         """
         failures=0
-        while failures < 4
+        while failures < 4:
             try: #handle errors
                 self.send(message)
                 response = self.receive()
