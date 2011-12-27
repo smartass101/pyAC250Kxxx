@@ -51,7 +51,7 @@ def unhexify(hexstring):
     Parameters
     ----------
     hexstring_repr : str
-        the hexadecimal string  should _not_ start with 'x' or '\x' or anything similar, only leading '0x' is acceptable
+        the hexadecimal string  should _not_ start with 'x' or '\\x' or anything similar, only leading '0x' is acceptable
 
     Returns
     -------
