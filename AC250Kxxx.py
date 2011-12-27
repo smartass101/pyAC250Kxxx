@@ -133,6 +133,38 @@ class Device:
     packet += ctrl_sum(packet) + '0$D'  #append the control sum and CR character
     self.port.write(packet) #send the packet
 
+    def receive(self)
+    """Receive a packet from the device and decode the message contained in that packet.
+    
+    The packet is similar to the packet constructed by :func:`Device.send`, but starts with a '#' character and may not be so long.
+    The device address and the control sum in the packet are checked.
+
+    Returns
+    -------
+    message : str
+        uppercase string contained in the packet
+
+    Raises
+    ------
+    AddressError
+        when address of the Device object does not correspond to the device address in the packet
+    ControlSumError
+        if the control sum of the packet does not match the calculated one
+    RuntimeError
+        when the packet is bad
+    """
+    packet=self.port.readline(eol='0$d') #read in the packet until the CR char is received
+    if packet[0] != '#': #if the packet does not start properly
+        raise RuntimeError
+    elif packet[1:3] != self.hexaddress: #if the packet device address is wrong
+        #the second and third character is the address
+        raise AddressError
+    elif packet[-2:] != ctrl_sum(packet[:-2]): #if the control sum in the packet does not match the real controlsum
+        #the control sum are the last two characters, as the eol is cut off
+        raise ControlSumError
+    else: #verything seems to be ok
+        return packet[3:-2] #return only the message
+
     
 class AddressError(Exception):
     def __init__(self, address):
