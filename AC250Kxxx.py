@@ -1,6 +1,18 @@
 #!/usr/bin/python2
 
 import serial as s
+
+################################################################
+################    ERRORS                      ################
+################################################################
+
+class AddressError(Exception):
+    def __init__(self, address):
+        self.address=address
+    def __str__(self):
+        return repr(self.address)
+
+
 ################################################################
 ################     HELPER FUNCTIONS           ################
 ################################################################
@@ -82,6 +94,10 @@ def ctrl_sum(string):
     while a > 256: #the sum must be lesser or equal to 256
         sum-=256
     return hexify(sum)
+
+################################################################
+################    MAIN CLASSES                ################
+################################################################
 
 class Device:
     """AC250Kxxx device communication wrapper class
@@ -224,85 +240,3 @@ class Device:
 
 
         
-class AddressError(Exception):
-    def __init__(self, address):
-        self.address=address
-    def __str__(self):
-        return repr(self.address)
-
-class CommunicationString:
-    """general communication string container
-
-    each communication string consists of several parts described in Attributes
-    initial : str
-        the initial character
-        determines the start of the packet
-        '@' for a command packet
-        '#' for a reply packet
-        message : str
-        the message contained by the packet
-        
-    """
-
-    def __str__(self):
-        """string representation of this object -> raw communication string"""
-        return self.string
-    def encode_string(self):
-        """encode the raw string based on object attributes"""
-        self.string=self.initial #the string starts with an initial character
-        self.string+=self.encode_address() #add the address
-        self.string+=self.message #add the message
-        self.string+=self.parameters #add the message parameters
-        self.string+=self.sum() #add the control sum
-        self.string+=self.cr #end with the carriage return character
-        
-class CommandString(CommunicationString):
-    """general command string for Diametral AC250K2D communication
-    """
-
-    def encode_address(address):
-        """encode the address as a string describing the addres in hexadecimal
-
-        Parameters
-        ----------
-        address : int 
-            address of the device
-            hold the 'Clear' button for several seconds to display it
-            255 is the universal broadcat address (translates to 'FF')
-        """
-        
-        if address != 255 and (address < 0 or address > 31)   : # wrong address provided
-            raise AddressError(address)
-        return self.hexify(address)
-    
-    def __init__(self, address, message, parameters):
-        """construct a new CommandString instance
-
-        Parameters
-        ----------
-        address : int
-            address of the device
-            ranges from 0 to 31, inclusive
-        message : str
-            string message, should be three characters long
-        parameters : str
-            parameters to the message
-        """
-        self.string="@"+self.encode_address(address)+message+parameters #make the first part of the message
-        self.string=self.string.upper() #all characters must be uppercase
-        self.string += self.sum(self.string) #add the checksum of the previous string contents
-        self.string += "$0D" # end with the  CR character
-
-class ReplyString(CommunicationString):
-    """string reply from the device"""
-    def __init__(self,reply, address=None):
-        """construct a new ReplyString instance from the recieved reply string
-
-        Parameters
-        ----------
-        reply : str
-            the raw string recieved from the device
-        address : int
-        
-        """
-    
