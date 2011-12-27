@@ -195,6 +195,32 @@ class Device:
                 response = None
         return response
 
+    def set_voltage(self, voltage):
+        """Set the voltage output of the device
+
+        Parameters
+        ----------
+        voltage : int
+            the voltage in [V], should be within the device range
+
+        Returns
+        -------
+        real_voltage : int
+            the device responds with the current set voltage
+
+        Raises
+        ------
+        ValueError
+            if the device responds that the requested voltage is beyond the possible range
+
+        Todo
+        ----
+        * actually implement the error detection and raising
+        * verify that the return value starts with 'NAP'
+        """
+        return int(self.query('NAP' + str(voltage))[3:]) #return the current voltage
+        #the response starts with 'NAP'
+        
 
 
         
