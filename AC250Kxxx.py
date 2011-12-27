@@ -123,77 +123,78 @@ class Device:
         The packet is an ANSI string composed of uppercase letters and special characters. The packet starts with the '@' initializer character, then the device address as a hexstring_repr as returned by :func:`hexify`, then the actuall message as an uppercase string, then the hexstring_repr control sum of the previous characters as returned by :func:`ctrl_sum` and finally ends with the CR (carriage return) character '0$D'.
         Example : '@0ANAP100E10$D' is a packet for the device with address 10 (0x0s) with the message 'NAP100'. The control sum of the previous characters is 0xe1
 
-    Parameters
-    ----------
-    message : str
-        uppercase string to be sent in the packet
-        at least 3 characters long
-    """
-    packet = '@' + self.hexaddress + message #start off with the initializer, add the address and message
-    packet += ctrl_sum(packet) + '0$D'  #append the control sum and CR character
-    self.port.write(packet) #send the packet
+        Parameters
+        ----------
+        message : str
+            uppercase string to be sent in the packet
+            at least 3 characters long
+        """
+        packet = '@' + self.hexaddress + message #start off with the initializer, add the address and message
+        packet += ctrl_sum(packet) + '0$D'  #append the control sum and CR character
+        self.port.write(packet) #send the packet
 
     def receive(self):
-    """Receive a packet from the device and decode the message contained in that packet.
-    
-    The packet is similar to the packet constructed by :func:`Device.send`, but starts with a '#' character and may not be so long.
-    The device address and the control sum in the packet are checked.
+        """Receive a packet from the device and decode the message contained in that packet.
 
-    Returns
-    -------
-    message : str
-        uppercase string contained in the packet
+        The packet is similar to the packet constructed by :func:`Device.send`, but starts with a '#' character and may not be so long.
+        The device address and the control sum in the packet are checked.
 
-    Raises
-    ------
-    AddressError
-        when address of the Device object does not correspond to the device address in the packet
-    ControlSumError
-        if the control sum of the packet does not match the calculated one
-    RuntimeError
-        when the packet is bad
-    """
-    packet=self.port.readline(eol='0$d') #read in the packet until the CR char is received
-    if packet[0] != '#': #if the packet does not start properly
-        raise RuntimeError
-    elif packet[1:3] != self.hexaddress: #if the packet device address is wrong
-        #the second and third character is the address
-        raise AddressError
-    elif packet[-2:] != ctrl_sum(packet[:-2]): #if the control sum in the packet does not match the real controlsum
-        #the control sum are the last two characters, as the eol is cut off
-        raise ControlSumError
-    else: #verything seems to be ok
-        return packet[3:-2] #return only the message
+        Returns
+        -------
+        message : str
+            uppercase string contained in the packet
+
+        Raises
+        ------
+        AddressError
+            when address of the Device object does not correspond to the device address in the packet
+        ControlSumError
+            if the control sum of the packet does not match the calculated one
+        RuntimeError
+            when the packet is bad
+        """
+        packet=self.port.readline(eol='0$d') #read in the packet until the CR char is received
+        if packet[0] != '#': #if the packet does not start properly
+            raise RuntimeError
+        elif packet[1:3] != self.hexaddress: #if the packet device address is wrong
+            #the second and third character is the address
+            raise AddressError
+        elif packet[-2:] != ctrl_sum(packet[:-2]): #if the control sum in the packet does not match the real controlsum
+            #the control sum are the last two characters, as the eol is cut off
+            raise ControlSumError
+        else: #verything seems to be ok
+            return packet[3:-2] #return only the message
 
     def query(self,message):
-    """Device.query(message) -> response
+        """Device.query(message) -> response
 
-    Query the device: send a message and get a response
+        Query the device: send a message and get a response
 
-    Parameters
-    ----------
-    message : str
-        a message to be passed to Device.send()
-        
-    Returns
-    -------
-    response : str
-        the response of the device
-        on failure returns None
+        Parameters
+        ----------
+        message : str
+            a message to be passed to Device.send()
 
-    Note
-    ----
-    The method first retries the query 3 times on failure
-    """
-    failures=0
-    while failures < 4
-        try: #handle errors
-            self.send(message)
-            response = self.receive()
-        except AddressError,ControlSumError,RuntimeError:
-            failures += 1
-            response = None
-    return response
+        Returns
+        -------
+        response : str
+            the response of the device
+            on failure returns None
+
+        Note
+        ----
+        The method first retries the query 3 times on failure
+        """
+        failures=0
+        while failures < 4
+            try: #handle errors
+                self.send(message)
+                response = self.receive()
+            except AddressError,ControlSumError,RuntimeError:
+                failures += 1
+                response = None
+        return response
+
 
 
         
