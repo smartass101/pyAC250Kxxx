@@ -116,7 +116,23 @@ class Device:
         self.address=address #store for later use TODO will it be used later at all? maybe just the hexaddress is enough. but the attribute is for informative purposes too
         self.hexaddress=hexify(address) #store for usage in packet construction and recieved packets verification
         self.port=s.Serial(serial_port, baudrate=9600, bytesize=8, parity='N', stopbits=1, xonxoff=False) #initialize the serial port as required by the specification
-        
+
+    def send(self,message):
+        """Construct a packet containing the message and send it to the Device
+
+        The packet is an ANSI string composed of uppercase letters and special characters. The packet starts with the '@' initializer character, then the device address as a hexstring_repr as returned by :func:`hexify`, then the actuall message as an uppercase string, then the hexstring_repr control sum of the previous characters as returned by :func:`sum` and finally ends with the CR (carriage return) character '0$D'.
+        Example : '@0ANAP100E10$D' is a packet for the device with address 10 (0x0s) with the message 'NAP100'. The control sum of the previous characters is 0xe1
+
+    Parameters
+    ----------
+    message : str
+        uppercase string to be sent in the packet
+        at least 3 characters long
+    """
+    packet = '@' + self.hexaddress + message #start off with the initializer, add the address and message
+    packet += sum(packet) + '0$D'  #append the control sum and CR character
+    self.port.write(packet) #send the packet
+    
 class AddressError(Exception):
     def __init__(self, address):
         self.address=address
