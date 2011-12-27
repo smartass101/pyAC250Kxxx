@@ -133,7 +133,7 @@ class Device:
     packet += ctrl_sum(packet) + '0$D'  #append the control sum and CR character
     self.port.write(packet) #send the packet
 
-    def receive(self)
+    def receive(self):
     """Receive a packet from the device and decode the message contained in that packet.
     
     The packet is similar to the packet constructed by :func:`Device.send`, but starts with a '#' character and may not be so long.
@@ -165,7 +165,38 @@ class Device:
     else: #verything seems to be ok
         return packet[3:-2] #return only the message
 
-    
+    def query(self,message):
+    """Device.query(message) -> response
+
+    Query the device: send a message and get a response
+
+    Parameters
+    ----------
+    message : str
+        a message to be passed to Device.send()
+        
+    Returns
+    -------
+    response : str
+        the response of the device
+        on failure returns None
+
+    Note
+    ----
+    The method first retries the query 3 times on failure
+    """
+    failures=0
+    while failures < 4
+        try: #handle errors
+            self.send(message)
+            response = self.receive()
+        except AddressError,ControlSumError,RuntimeError:
+            failures += 1
+            response = None
+    return response
+
+
+        
 class AddressError(Exception):
     def __init__(self, address):
         self.address=address
