@@ -83,7 +83,40 @@ def sum(string):
         sum-=256
     return hexify(sum)
 
+class Device:
+    """AC250Kxxx device communication wrapper class
 
+    Provides access to the device on the specified address. Can be used to query or set various settings, e.g. voltage.
+    
+    Attributes
+    ----------
+    address : int
+        address of the device
+        ranges from 0 to 31, inclusive (32 possible addresses)
+        address 255 is the broadcast address, any device accepts it, but won't send a response packet back (not recommended, makes debugging very hard)
+        the device address can be displayed by holding the red 'Clear' button for several seconds
+    port : Serial
+        Serial object, provides access to the serial port. See :class:`serial` for a better description
+        As required by the AC250Kxxx communication specification, it is initialized with a baudrate of 9600, bytesize of 8, no bit parity, 1 stopbit and no flow control
+    """
+    
+    def __init__(self, address=255, serial_port=0):
+        """Initialize a new Device object with the specified address communicating through the specified serial port.
+
+        Parameters
+        ----------
+        address : int
+            device address, see the :class:`Device` docstring for a better explanation
+            ranges from 0 to 31 inclusive, defaluts to 255 (broadcast address)
+        serial_port : int
+            number of the serial port to be used for communication
+            on Linux it's the number X in /dev/ttySX
+            defaults to 0 (/dev/ttyS0)
+        """
+        self.address=address #store for later use TODO will it be used later at all? maybe just the hexaddress is enough. but the attribute is for informative purposes too
+        self.hexaddress=hexify(address) #store for usage in packet construction and recieved packets verification
+        self.port=s.Serial(serial_port, baudrate=9600, bytesize=8, parity='N', stopbits=1, xonxoff=False) #initialize the serial port as required by the specification
+        
 class AddressError(Exception):
     def __init__(self, address):
         self.address=address
@@ -94,18 +127,12 @@ class CommunicationString:
     """general communication string container
 
     each communication string consists of several parts described in Attributes
-    Attributes
-    ----------
     initial : str
         the initial character
         determines the start of the packet
         '@' for a command packet
         '#' for a reply packet
-    address : int
-        address of the device
-        ranges from 0 to 31, inclusive (32 possible addresses)
-        address 255 is the broadcats address
-    message : str
+        message : str
         the message contained by the packet
         
     """
