@@ -52,8 +52,8 @@ def unhexify(hexstring):
     """
     return int(hexstring, 16) #return the number represented in hexadecimal
 
-def sum(string):
-    """sum(string) -> sum_hexstring_repr
+def ctrl_sum(string):
+    """ctrl_sum(string) -> ctrl_sum_hexstring_repr
 
     Calculate the control sum of the provided uppercase string message as represented in hexadecimal.
 
@@ -64,7 +64,7 @@ def sum(string):
         
     Returns
     -------
-    sum_hexstring_repr : str
+    ctrl_sum_hexstring_repr : str
         the sum as an uppercase string representing the control sum in hexadecimal
         always lesser or equal to 'FF' (256)
 
@@ -120,7 +120,7 @@ class Device:
     def send(self,message):
         """Construct a packet containing the message and send it to the Device
 
-        The packet is an ANSI string composed of uppercase letters and special characters. The packet starts with the '@' initializer character, then the device address as a hexstring_repr as returned by :func:`hexify`, then the actuall message as an uppercase string, then the hexstring_repr control sum of the previous characters as returned by :func:`sum` and finally ends with the CR (carriage return) character '0$D'.
+        The packet is an ANSI string composed of uppercase letters and special characters. The packet starts with the '@' initializer character, then the device address as a hexstring_repr as returned by :func:`hexify`, then the actuall message as an uppercase string, then the hexstring_repr control sum of the previous characters as returned by :func:`ctrl_sum` and finally ends with the CR (carriage return) character '0$D'.
         Example : '@0ANAP100E10$D' is a packet for the device with address 10 (0x0s) with the message 'NAP100'. The control sum of the previous characters is 0xe1
 
     Parameters
@@ -130,8 +130,9 @@ class Device:
         at least 3 characters long
     """
     packet = '@' + self.hexaddress + message #start off with the initializer, add the address and message
-    packet += sum(packet) + '0$D'  #append the control sum and CR character
+    packet += ctrl_sum(packet) + '0$D'  #append the control sum and CR character
     self.port.write(packet) #send the packet
+
     
 class AddressError(Exception):
     def __init__(self, address):
