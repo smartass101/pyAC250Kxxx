@@ -206,7 +206,7 @@ class Device:
             try: #handle errors
                 self.send(message)
                 response = self.receive()
-            except AddressError,ControlSumError,RuntimeError:
+            except (AddressError,ControlSumError,RuntimeError):
                 failures += 1
                 response = None
         return response
