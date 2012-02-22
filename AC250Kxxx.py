@@ -88,12 +88,12 @@ def ctrl_sum(string):
     --------
     hexify, unhexify : Hexstring representation of integers as required by the AC250Kxxx communication specification.
     """
-    sum=0
+    _sum=0
     for char in string:
-        sum+=ord(char) #tranclate character to int
-    while a > 256: #the sum must be lesser or equal to 256
-        sum-=256
-    return hexify(sum)
+        _sum += ord(char) #tranclate character to int
+    while _sum > 256: #the sum must be lesser or equal to 256
+        _sum -= 256
+    return hexify(_sum)
 
 ################################################################
 ################    MAIN CLASSES                ################
