@@ -11,8 +11,8 @@ import serial as s
 ################     HELPER FUNCTIONS           ################
 ################################################################
 
-def hexify(number):
-    """hexify(number) -> hexstring_repr
+def _hexify(number):
+    """_hexify(number) -> hexstring_repr
     
     Translates the number to an uppercase string representing it in hexadecimal.
 
@@ -29,7 +29,7 @@ def hexify(number):
 
     See Also
     --------
-    :func:`unhexify` : inverse function
+    :func:`_unhexify` : inverse function
     """
     #if number <0 : number*=-1 #TODO not sure if useful
     code=hex(number)[2:] #cut off the '0x' part
@@ -37,8 +37,8 @@ def hexify(number):
         code="0"+code# the hexadecimal address must have two characters
     return code.upper() #return an uppercase string
 
-def unhexify(hexstring):
-    """unhexify(hexstring_repr) -> number
+def _unhexify(hexstring):
+    """_unhexify(hexstring_repr) -> number
     
     Translate an uppercase string representing a hexadecimal number to the number in decimal.
 
@@ -54,12 +54,12 @@ def unhexify(hexstring):
 
     See Also
     --------
-    hexify : inverse function
+    :func:`_hexify` : inverse function
     """
     return int(hexstring, 16) #return the number represented in hexadecimal
 
-def ctrl_sum(string):
-    """ctrl_sum(string) -> ctrl_sum_hexstring_repr
+def _ctrl_sum(string):
+    """_ctrl_sum(string) -> ctrl_sum_hexstring_repr
 
     Calculate the control sum of the provided uppercase string message as represented in hexadecimal.
 
@@ -80,14 +80,14 @@ def ctrl_sum(string):
 
     See Also
     --------
-    hexify, unhexify : Hexstring representation of integers as required by the AC250Kxxx communication specification.
+    :func:`_hexify`, :func:`_unhexify` : Hexstring representation of integers as required by the AC250Kxxx communication specification.
     """
     _sum=0
     for char in string:
         _sum += ord(char) #tranclate character to int
     while _sum > 256: #the sum must be lesser or equal to 256
         _sum -= 256
-    return hexify(_sum)
+    return _hexify(_sum)
 
 ################################################################
 ################    MAIN CLASSES                ################
@@ -124,13 +124,13 @@ class Device:
             defaults to 0 (/dev/ttyS0)
         """
         self.address=address #store for later use TODO will it be used later at all? maybe just the hexaddress is enough. but the attribute is for informative purposes too
-        self.hexaddress=hexify(address) #store for usage in packet construction and recieved packets verification
+        self.hexaddress=_hexify(address) #store for usage in packet construction and recieved packets verification
         self.port=s.Serial(serial_port, baudrate=9600, bytesize=8, parity='N', stopbits=1, xonxoff=False) #initialize the serial port as required by the specification
 
     def send(self,message):
         """Construct a packet containing the message and send it to the Device
 
-        The packet is an ANSI string composed of uppercase letters and special characters. The packet starts with the '@' initializer character, then the device address as a hexstring_repr as returned by :func:`hexify`, then the actuall message as an uppercase string, then the hexstring_repr control sum of the previous characters as returned by :func:`ctrl_sum` and finally ends with the CR (carriage return) character '0$D'.
+        The packet is an ANSI string composed of uppercase letters and special characters. The packet starts with the '@' initializer character, then the device address as a hexstring_repr as returned by :func:`_hexify`, then the actuall message as an uppercase string, then the hexstring_repr control sum of the previous characters as returned by :func:`_ctrl_sum` and finally ends with the CR (carriage return) character '0$D'.
         Example : '@0ANAP100E10$D' is a packet for the device with address 10 (0x0s) with the message 'NAP100'. The control sum of the previous characters is 0xe1
 
         Parameters
@@ -140,7 +140,7 @@ class Device:
             at least 3 characters long
         """
         packet = '@' + self.hexaddress + message #start off with the initializer, add the address and message
-        packet += ctrl_sum(packet) + '0$D'  #append the control sum and CR character
+        packet += _ctrl_sum(packet) + '0$D'  #append the control sum and CR character
         self.port.write(packet) #send the packet
 
     def receive(self):
@@ -156,12 +156,10 @@ class Device:
 
         Raises
         ------
-        AddressError
-            when address of the Device object does not correspond to the device address in the packet
-        ControlSumError
-            if the control sum of the packet does not match the calculated one
-        RuntimeError
-            when the packet is bad
+        :class:`ValueError`
+            - when address of the :class:`Device` object does not correspond to the device address in the packet
+            - if the control sum of the packet does not match the calculated one
+            - when the packet is bad
         """
         packet=self.port.readline(eol='0$d') #read in the packet until the CR char is received
         if packet[0] != '#': #if the packet does not start properly
@@ -169,21 +167,21 @@ class Device:
         elif packet[1:3] != self.hexaddress: #if the packet device address is wrong
             #the second and third character is the address
             raise ValueError("received packet from address '" + packet[1:3] + "' (hex), but our device has address '" + self.hexaddress + "' (hex)"
-        elif packet[-2:] != ctrl_sum(packet[:-2]): #if the control sum in the packet does not match the real controlsum
+        elif packet[-2:] != _ctrl_sum(packet[:-2]): #if the control sum in the packet does not match the real controlsum
             #the control sum are the last two characters, as the eol is cut off
-            raise ValueError("received packet contains a wrong control sum '" + packet[-2:] + "' (hex), should be '" + ctrl_sum(packet[:-2]) + "' (hex)"
+            raise ValueError("received packet contains a wrong control sum '" + packet[-2:] + "' (hex), should be '" + _ctrl_sum(packet[:-2]) + "' (hex)"
         else: #verything seems to be ok
             return packet[3:-2] #return only the message
 
     def query(self,message):
-        """Device.query(message) -> response
+        """query(message) -> response
 
         Query the device: send a message and get a response
 
         Parameters
         ----------
         message : str
-            a message to be passed to Device.send()
+        a message to be passed to :func:`Device.send`
 
         Returns
         -------
