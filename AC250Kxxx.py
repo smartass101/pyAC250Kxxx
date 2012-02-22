@@ -25,7 +25,7 @@ def hexify(number):
     Parameters
     ----------
     number : int
-        an integer, expected to be unsigned
+        an integer, expected to be unsigned (negative values do not make sense in the scope of communication)
 
     Returns
     -------
@@ -35,10 +35,10 @@ def hexify(number):
 
     See Also
     --------
-    unhexify : inverse function
+    :func:`unhexify` : inverse function
     """
     #if number <0 : number*=-1 #TODO not sure if useful
-    code=hex(address)[2:] #cut off the '0x' part
+    code=hex(number)[2:] #cut off the '0x' part
     if number < 16 : #if the number as hexadecimal is < 16 the hex string will have just one char
         code="0"+code# the hexadecimal address must have two characters
     return code.upper() #return an uppercase string
