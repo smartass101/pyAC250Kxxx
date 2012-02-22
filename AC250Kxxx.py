@@ -1,7 +1,11 @@
 #!/usr/bin/python2
 
-import serial as s
+"""Python wrapper and simple API for communication with a AC250Kxxx series Diametral power source
 
+All communication is performed through the :class:`Device` class and it's methods
+"""
+
+import serial as s
 
 ################################################################
 ################     HELPER FUNCTIONS           ################
