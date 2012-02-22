@@ -2,16 +2,6 @@
 
 import serial as s
 
-################################################################
-################    ERRORS                      ################
-################################################################
-
-class AddressError(Exception):
-    def __init__(self, address):
-        self.address=address
-    def __str__(self):
-        return repr(self.address)
-
 
 ################################################################
 ################     HELPER FUNCTIONS           ################
@@ -171,13 +161,13 @@ class Device:
         """
         packet=self.port.readline(eol='0$d') #read in the packet until the CR char is received
         if packet[0] != '#': #if the packet does not start properly
-            raise RuntimeError
+            raise ValueError("received packet does not start with '#'")
         elif packet[1:3] != self.hexaddress: #if the packet device address is wrong
             #the second and third character is the address
-            raise AddressError
+            raise ValueError("received packet from address '" + packet[1:3] + "' (hex), but our device has address '" + self.hexaddress + "' (hex)"
         elif packet[-2:] != ctrl_sum(packet[:-2]): #if the control sum in the packet does not match the real controlsum
             #the control sum are the last two characters, as the eol is cut off
-            raise ControlSumError
+            raise ValueError("received packet contains a wrong control sum '" + packet[-2:] + "' (hex), should be '" + ctrl_sum(packet[:-2]) + "' (hex)"
         else: #verything seems to be ok
             return packet[3:-2] #return only the message
 
@@ -206,7 +196,7 @@ class Device:
             try: #handle errors
                 self.send(message)
                 response = self.receive()
-            except (AddressError,ControlSumError,RuntimeError):
+            except ValueError:
                 failures += 1
                 response = None
         return response
