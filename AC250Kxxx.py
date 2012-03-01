@@ -161,17 +161,17 @@ class Device:
             - if the control sum of the packet does not match the calculated one
             - when the packet is bad
         """
-        packet=self.port.readline(eol='0$d') #read in the packet until the CR char is received
+        packet=self.port.readline() #read in the packet until the CR char(actually LF -"\n") is received
         if packet[0] != '#': #if the packet does not start properly
             raise ValueError("received packet does not start with '#'")
         elif packet[1:3] != self.hexaddress: #if the packet device address is wrong
             #the second and third character is the address
             raise ValueError("received packet from address '" + packet[1:3] + "' (hex), but our device has address '" + self.hexaddress + "' (hex)"
-        elif packet[-2:] != _ctrl_sum(packet[:-2]): #if the control sum in the packet does not match the real controlsum
+        elif packet[-5:-3] != _ctrl_sum(packet[:-5]): #if the control sum in the packet does not match the real controlsum
             #the control sum are the last two characters, as the eol is cut off
-            raise ValueError("received packet contains a wrong control sum '" + packet[-2:] + "' (hex), should be '" + _ctrl_sum(packet[:-2]) + "' (hex)"
+            raise ValueError("received packet contains a wrong control sum '" + packet[-5:-3] + "' (hex), should be '" + _ctrl_sum(packet[:-5]) + "' (hex)"
         else: #verything seems to be ok
-            return packet[3:-2] #return only the message
+            return packet[3:-3] #return only the message
 
     def query(self,message):
         """query(message) -> response
