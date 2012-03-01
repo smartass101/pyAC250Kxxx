@@ -209,11 +209,10 @@ class Device:
         while failures < 4:
             try: #handle errors
                 self.send(message)
-                response = self.receive()
+                return self.receive()
             except ValueError:
                 failures += 1
-                response = None
-        return response
+        return None #is we got beyond the while cycle we have 3 failures
 
     def set_voltage(self, voltage):
         """Set the voltage output of the device
