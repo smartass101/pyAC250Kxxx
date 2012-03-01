@@ -140,7 +140,7 @@ class Device:
             at least 3 characters long
         """
         packet = '@' + self.hexaddress + message #start off with the initializer, add the address and message
-        packet += _ctrl_sum(packet) + '0$D'  #append the control sum and CR character
+        packet += _ctrl_sum(packet) + "0D\n"  #append the control sum and CR character
         self.port.write(packet) #send the packet
 
     def receive(self):
