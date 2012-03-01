@@ -7,6 +7,8 @@ All communication is performed through the :class:`Device` class and it's method
 
 import serial as s
 
+CTRLSUM = False
+
 ################################################################
 ################     HELPER FUNCTIONS           ################
 ################################################################
@@ -138,9 +140,15 @@ class Device:
         message : str
             uppercase string to be sent in the packet
             at least 3 characters long
+
+        Note
+        ----
+        The control sum is only calculated and appended if CTRLSUM is set to True
         """
         packet = '@' + self.hexaddress + message #start off with the initializer, add the address and message
-        packet += _ctrl_sum(packet) + "0D\n"  #append the control sum and CR character
+        if CTRLSUM:
+            packet += _ctrl_sum(packet) #append the control sum
+        packet += "0D\n"  # and CR character
         self.port.write(packet) #send the packet
 
     def receive(self):
@@ -167,11 +175,15 @@ class Device:
         elif packet[1:3] != self.hexaddress: #if the packet device address is wrong
             #the second and third character is the address
             raise ValueError("received packet from address '" + packet[1:3] + "' (hex), but our device has address '" + self.hexaddress + "' (hex)"
-        elif packet[-5:-3] != _ctrl_sum(packet[:-5]): #if the control sum in the packet does not match the real controlsum
-            #the control sum are the last two characters, as the eol is cut off
-            raise ValueError("received packet contains a wrong control sum '" + packet[-5:-3] + "' (hex), should be '" + _ctrl_sum(packet[:-5]) + "' (hex)"
+        elif CTRLSUM:
+            if packet[-5:-3] != _ctrl_sum(packet[:-5]): #if the control sum in the packet does not match the real controlsum
+                #the control sum are the last two characters before the CR char
+                raise ValueError("received packet contains a wrong control sum '" + packet[-5:-3] + "' (hex), should be '" + _ctrl_sum(packet[:-5]) + "' (hex)"
         else: #verything seems to be ok
-            return packet[3:-3] #return only the message
+            if CTRLSUM:
+                return packet[3:-5] #return only the message without control sum
+            else:
+                return packet[3:-3] #return message without ctrlsum
 
     def query(self,message):
         """query(message) -> response
