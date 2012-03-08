@@ -148,7 +148,7 @@ class Device:
         packet = '@' + self.hexaddress + message #start off with the initializer, add the address and message
         if CTRLSUM:
             packet += _ctrl_sum(packet[1:]) #append the control sum
-        packet += "0D\n"  # and CR character
+        packet += '\x0d' # and CR character
         self.port.write(packet) #send the packet
 
     def receive(self):
