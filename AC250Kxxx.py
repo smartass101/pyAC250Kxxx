@@ -169,7 +169,7 @@ class Device:
             - if the control sum of the packet does not match the calculated one
             - when the packet is bad
         """
-        packet=self.port.readline() #read in the packet until the CR char(actually LF -"\n") is received
+        packet=self.port.readline(eol='\x0d') #read in the packet until the CR char is received
         if packet[0] != '#': #if the packet does not start properly
             raise ValueError("received packet does not start with '#'")
         elif packet[1:3] != self.hexaddress: #if the packet device address is wrong
