@@ -174,11 +174,11 @@ class Device:
             raise ValueError("received packet does not start with '#'")
         elif packet[1:3] != self.hexaddress: #if the packet device address is wrong
             #the second and third character is the address
-            raise ValueError("received packet from address '" + packet[1:3] + "' (hex), but our device has address '" + self.hexaddress + "' (hex)"
+            raise ValueError("received packet from address '" + packet[1:3] + "' (hex), but our device has address '" + self.hexaddress + "' (hex)")
         elif CTRLSUM:
             if packet[-5:-3] != _ctrl_sum(packet[:-5]): #if the control sum in the packet does not match the real controlsum
                 #the control sum are the last two characters before the CR char
-                raise ValueError("received packet contains a wrong control sum '" + packet[-5:-3] + "' (hex), should be '" + _ctrl_sum(packet[:-5]) + "' (hex)"
+                raise ValueError("received packet contains a wrong control sum '" + packet[-5:-3] + "' (hex), should be '" + _ctrl_sum(packet[:-5]) + "' (hex)")
         else: #verything seems to be ok
             if CTRLSUM:
                 return packet[3:-5] #return only the message without control sum
