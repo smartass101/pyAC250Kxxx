@@ -147,9 +147,10 @@ class Device:
         """
         packet = '@' + self.hexaddress + message #start off with the initializer, add the address and message
         packet += _ctrl_sum(packet[1:]) #append the control sum
-        packet += '\x0a' # and CR character
+        packet += '\x0d' # and CR character
         self.port.write(packet) #send the packet
-        print packet
+        for char in packet:
+            print char,": ",hex(ord(char))
 
     def receive(self):
         """Receive a packet from the device and decode the message contained in that packet.
@@ -169,7 +170,7 @@ class Device:
             - if the control sum of the packet does not match the calculated one
             - when the packet is bad
         """
-        packet=self.port.readline(eol='\x0a') #read in the packet until the CR char is received
+        packet=self.port.readline(eol='\x0d') #read in the packet until the CR char is received
         if packet[0] != '#': #if the packet does not start properly
             raise ValueError("received packet does not start with '#'")
         elif packet[1:3] != self.hexaddress: #if the packet device address is wrong
