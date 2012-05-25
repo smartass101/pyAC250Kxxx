@@ -132,7 +132,7 @@ class Device:
     def send(self,message):
         """Construct a packet containing the message and send it to the Device
 
-        The packet is an ANSI string composed of uppercase letters and special characters. The packet starts with the '@' initializer character, then the device address as a hexstring_repr as returned by :func:`_hexify`, then the actuall message as an uppercase string, then the hexstring_repr control sum of the previous characters as returned by :func:`_ctrl_sum` and finally ends with the CR (carriage return) character '0$D'.
+        The packet is an ANSI string composed of uppercase letters and special characters. The packet starts with the '@' initializer character, then the device address as a hexstring_repr as returned by :func:`_hexify`, then the actuall message as an uppercase string, then the hexstring_repr control sum of the previous characters as returned by :func:`_ctrl_sum` and finally ends with the CR (carriage return) character.
         Example : '@0ANAP100E1\r' is a packet for the device with address 10 (0x0a) with the message 'NAP100'. The control sum of the previous characters is 0xe1
 
         Parameters
