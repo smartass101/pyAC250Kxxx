@@ -2,10 +2,10 @@
 
 """Python wrapper and simple API for communication with a AC250Kxxx series Diametral power source
 
-All communication is performed through the :class:`Device` class and it's methods
+All communication is performed through the :class:`Device` class and it's methods, using the pySerial library
 """
 
-import serial as s
+from serial import Serial 
 
 CTRLSUM = False
 
@@ -95,7 +95,7 @@ def _ctrl_sum(string):
 ################    MAIN CLASSES                ################
 ################################################################
 
-class Device:
+class Device(Serial):
     """AC250Kxxx device communication wrapper class
 
     Provides access to the device on the specified address. Can be used to query or set various settings, e.g. voltage.
@@ -107,9 +107,11 @@ class Device:
         ranges from 0 to 31, inclusive (32 possible addresses)
         address 255 is the broadcast address, any device accepts it, but won't send a response packet back (not recommended, makes debugging very hard)
         the device address can be displayed by holding the red 'Clear' button for several seconds
-    port : Serial
-        Serial object, provides access to the serial port. See :class:`serial` for a better description
-        As required by the AC250Kxxx communication specification, it is initialized with a baudrate of 9600, bytesize of 8, no bit parity, 1 stopbit and no flow control
+
+    Note
+    ----
+    The class is a subclass of :class:`serial.Serial` and as is required by the AC250Kxxx communication specification,
+    it is initialized with a baudrate of 9600, bytesize of 8, no bit parity, 1 stopbit and no flow control
     """
     
     def __init__(self, address=255, serial_port=0):
@@ -125,9 +127,9 @@ class Device:
             or the explicit name of the device to be passed to :meth:`serial.Serial.__init__`
             on Linux it's the number X in /dev/ttySX and defaults to 0 (/dev/ttyS0)
         """
+        super(Device, self).__init__(serial_port, baudrate=9600, bytesize=8, parity='N', stopbits=1, xonxoff=False) #initialize the serial port as required by the specification
         self.address=address #store for later use TODO will it be used later at all? maybe just the hexaddress is enough. but the attribute is for informative purposes too
         self.hexaddress=_hexify(address) #store for usage in packet construction and recieved packets verification
-        self.port=s.Serial(serial_port, baudrate=9600, bytesize=8, parity='N', stopbits=1, xonxoff=False) #initialize the serial port as required by the specification
 
     def send(self,message):
         """Construct a packet containing the message and send it to the Device
@@ -148,7 +150,7 @@ class Device:
         packet = '@' + self.hexaddress + message #start off with the initializer, add the address and message
         packet += _ctrl_sum(packet[1:]) #append the control sum
         packet += '\x0d' # and CR character
-        self.port.write(packet) #send the packet
+        self.write(packet) #send the packet
         for char in packet:
             print char,": ",hex(ord(char))
 
@@ -170,7 +172,7 @@ class Device:
             - if the control sum of the packet does not match the calculated one
             - when the packet is bad
         """
-        packet=self.port.readline(eol='\x0d') #read in the packet until the CR char is received
+        packet = self.read(self.isWaiting()) #read in the number of bytes in the receive buffer
         if packet[0] != '#': #if the packet does not start properly
             raise ValueError("received packet does not start with '#'")
         elif packet[1:3] != self.hexaddress: #if the packet device address is wrong
