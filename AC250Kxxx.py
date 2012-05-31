@@ -120,10 +120,10 @@ class Device:
         address : int
             device address, see the :class:`Device` docstring for a better explanation
             ranges from 0 to 31 inclusive, defaluts to 255 (broadcast address)
-        serial_port : int
+        serial_port : int or str
             number of the serial port to be used for communication
-            on Linux it's the number X in /dev/ttySX
-            defaults to 0 (/dev/ttyS0)
+            or the explicit name of the device to be passed to :meth:`serial.Serial.__init__`
+            on Linux it's the number X in /dev/ttySX and defaults to 0 (/dev/ttyS0)
         """
         self.address=address #store for later use TODO will it be used later at all? maybe just the hexaddress is enough. but the attribute is for informative purposes too
         self.hexaddress=_hexify(address) #store for usage in packet construction and recieved packets verification
