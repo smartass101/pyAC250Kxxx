@@ -131,8 +131,10 @@ class Device(Serial):
         self.address=address #store for later use TODO will it be used later at all? maybe just the hexaddress is enough. but the attribute is for informative purposes too
         self.hexaddress=_hexify(address) #store for usage in packet construction and recieved packets verification
 
-    def send(self,message):
-        """Construct a packet containing the message and send it to the Device
+    def send(self, message):
+        """Device.send(message)
+
+        Construct a packet containing the message and send it to the Device
 
         The packet is an ANSI string composed of uppercase letters and special characters. The packet starts with the '@' initializer character, then the device address as a hexstring_repr as returned by :func:`_hexify`, then the actuall message as an uppercase string, then the hexstring_repr control sum of the previous characters as returned by :func:`_ctrl_sum` and finally ends with the CR (carriage return) character.
         Example : '@0ANAP100E1\r' is a packet for the device with address 10 (0x0a) with the message 'NAP100'. The control sum of the previous characters is 0xe1
@@ -155,7 +157,9 @@ class Device(Serial):
             print char,": ",hex(ord(char))
 
     def receive(self):
-        """Receive a packet from the device and decode the message contained in that packet.
+        """Device.receive() -> response
+
+        Receive a packet from the device and decode the message contained in that packet.
 
         The packet is similar to the packet constructed by :func:`Device.send`, but starts with a '#' character and may not be so long.
         The device address and the control sum in the packet are checked.
@@ -200,7 +204,7 @@ class Device(Serial):
 
         Returns
         -------
-        response : str
+        response : str or None
             the response of the device
             on failure returns None
 
@@ -218,7 +222,9 @@ class Device(Serial):
         return None #is we got beyond the while cycle we have 3 failures
 
     def set_voltage(self, voltage):
-        """Set the voltage output of the device
+        """set_voltage(volatge) -> real_voltage
+
+        Set the voltage output of the device and receive the current voltage
 
         Parameters
         ----------
