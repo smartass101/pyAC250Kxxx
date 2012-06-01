@@ -151,7 +151,8 @@ class Device(Serial):
         The control sum is only calculated and appended if CTRLSUM is set to True
         """
         packet = '@' + self.hexaddress + message #start off with the initializer, add the address and message
-        packet += _ctrl_sum(packet[1:]) #append the control sum
+        if CTRLSUM:
+            packet += _ctrl_sum(packet[1:]) #append the control sum
         packet += '\x0d' # and CR character
         self.write(packet) #send the packet
         if debug:
@@ -251,7 +252,7 @@ class Device(Serial):
         * actually implement the error detection and raising
         * verify that the return value starts with 'NAP'
         """
-        return int(self.query('NAP' + str(voltage))[3:]) #return the current voltage
+        return int(self.query('NAP{:03d}'.format(voltage))[3:]) #return the current voltage
         #the response starts with 'NAP'
         
 
