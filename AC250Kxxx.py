@@ -8,6 +8,7 @@ All communication is performed through the :class:`Device` class and it's method
 from serial import Serial 
 
 CTRLSUM = False
+debug = False
 
 ################################################################
 ################     HELPER FUNCTIONS           ################
@@ -153,8 +154,9 @@ class Device(Serial):
         packet += _ctrl_sum(packet[1:]) #append the control sum
         packet += '\x0d' # and CR character
         self.write(packet) #send the packet
-        for char in packet:
-            print char,": ",hex(ord(char))
+        if debug:
+            for char in packet:
+                print char,": ",hex(ord(char))
 
     def receive(self):
         """Device.receive() -> response
@@ -177,6 +179,9 @@ class Device(Serial):
             - when the packet is bad
         """
         packet = self.read(self.inWaiting()) #read in the number of bytes in the receive buffer
+        if debug:
+            for char in packet:
+                print char,": ",hex(ord(char))
         if packet[0] != '#': #if the packet does not start properly
             raise ValueError("received packet does not start with '#'")
         elif packet[1:3] != self.hexaddress: #if the packet device address is wrong
