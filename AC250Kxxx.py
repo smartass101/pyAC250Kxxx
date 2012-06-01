@@ -176,7 +176,7 @@ class Device(Serial):
             - if the control sum of the packet does not match the calculated one
             - when the packet is bad
         """
-        packet = self.read(self.isWaiting()) #read in the number of bytes in the receive buffer
+        packet = self.read(self.inWaiting()) #read in the number of bytes in the receive buffer
         if packet[0] != '#': #if the packet does not start properly
             raise ValueError("received packet does not start with '#'")
         elif packet[1:3] != self.hexaddress: #if the packet device address is wrong
