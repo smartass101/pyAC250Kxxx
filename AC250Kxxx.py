@@ -5,9 +5,17 @@
 All communication is performed through the :class:`Device` class and it's methods, using the pySerial library
 """
 
-from serial import Serial 
+from serial import Serial
+from time import sleep
 
+################################################################
+####                 CONSTANTS                              ####
+################################################################
+
+"""If True, verbosely print the packets, defaults to False"""
 debug = False
+"""Delay between sending packets and receiving them in seconds for the Device to construct its reply and the voltage to rise"""
+delay = 1
 
 ################################################################
 ################     HELPER FUNCTIONS           ################
@@ -192,37 +200,37 @@ class Device(Serial):
         else: #verything seems to be ok
             return packet[3:-1] #return the message 
 
-    def query(self,message):
-        """Device.query(message) -> response
+    def query(self,message, delay=1):
+        """Device.query(message[, delay]) -> response
 
-        Query the device: send a message and get a response
+        Query the device: send a message and get a response with an optional delay.    
 
         Parameters
         ----------
         message : str
             a message to be passed to :func:`Device.send`
+        delay : float, optional
+            delay in seconds between sending and receiving
+            if 0, the reply is not obtained at all
+            defaults to 1 second
 
         Returns
         -------
-        response : str or None
+        response : str
             the response of the device
-            on failure returns None
-
-        Note
-        ----
-        The method first retries the query 3 times on failure
+            only if delay was not 0
         """
-        failures=0
-        while failures < 4:
-            try: #handle errors
-                self.send(message)
-                return self.receive()
-            except ValueError:
-                failures += 1
-        return None #is we got beyond the while cycle we have 3 failures
+        self.flushInput() #remove any residual replies
+        self.send(message)
+        if delay: #delay not 0.0
+            sleep(delay)
+            return self.receive()
+        else: #delay 0, so don't want reply
+            self.flushInput() #remove any reply
+            
 
-    def command(self, instruction):
-        """Device.command(instruction)
+    def command(self, instruction, get_ack=True):
+        """Device.command(instruction[, get_ack]) -> ack
 
         Send a command to the device and wait for acknowledgment (ACK)
 
@@ -230,39 +238,52 @@ class Device(Serial):
         ----------
         message : str
             a message to be passed to :func:`Device.send`
+        get_ack : bool, optional
+            if True, the reply is obtained and A
 
+        Returns
+        -------
+        ack : bool
+            True if Device replied 'OK'
+            False if Device replied 'Err'
+            
         Raises
         ------
         :class:`RuntimeError`
-            if ACK is not 'OK', raises with the reported message
+            Raises if the reply was something else than 'OK' or 'Err'
         """
-        self.send(instruction)
-        ack = self.receive()
-        if ack != 'OK':
+        ack = self.query(instruction)
+        if ack == 'OK':
+            return True
+        elif ack == 'Err':
+            return False
+        else:
             raise RuntimeError("Device reported error: " + ack)
 
-    def set_voltage(self, voltage):
-        """Device.set_voltage(volatge)
-
-        Set the voltage output of the device
-
-        Parameters
-        ----------
-        voltage : int
-            the voltage in [V], should be within the device range
-
-        Raises
-        ------
-        ValueError
-            if the device responds that the requested voltage is beyond the possible range
-
-        Todo
-        ----
-        * actually implement the error detection and raising
-        * verify that the return value starts with 'NAP'
-        """
+    @property
+    def voltage(self): #get the voltage
+        return int(self.query('NAP???')[3:]) #reply is 'NAPXXX'
+    @voltage.setter
+    def voltage(self, voltage):
         self.command('NAP{:03d}'.format(voltage)) 
-        #the response starts with 'NAP'
+
+    @property
+    def out(self): #get the OUT status as bool
+        if self.query('OUT?')[-1] == '1': #should be 'OUT1'
+            return True
+        else: #should be 'OUT0'
+            return False
+    @out.setter
+    def out(self, on): #set the OUT status as bool
+        if on: #if True
+            self.command('OUT1')
+        else:
+            self.command('OUT0')
+
+    @property
+    def id(self): #get the ID of the device
+        return self.query('ID?')
+        
         
 
 
