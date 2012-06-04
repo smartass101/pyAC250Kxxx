@@ -6,6 +6,6 @@ setup(name="pyAC250Kxxx",
       author_email="ondrej.grover@gmail.com",
       url="http://github.com/smartass101/pyAC250Kxx",
       download_url="https://github.com/smartass101/pyAC250Kxxx/zipball/master",
-      py_modules=['pyAC205Kxxx'],
-      scripts=['AC205K'],
+      py_modules=['AC250Kxxx'],
+      scripts=['AC250K'],
       )
