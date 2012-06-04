@@ -175,7 +175,7 @@ class Device(Serial):
 
         Receive a packet from the device and decode the message contained in that packet.
 
-        The packet is similar to the packet constructed by :func:`Device.send`, but starts with a '#' character and does not contain a control sum.
+        The packet is similar to the packet constructed by :meth:`Device.send`, but starts with a '#' character and does not contain a control sum.
         The initializing character and the device address are checked.
 
         Returns
@@ -208,38 +208,30 @@ class Device(Serial):
         Parameters
         ----------
         message : str
-            a message to be passed to :func:`Device.send`
+            a message to be passed to :meth:`Device.send`
         delay : float, optional
             delay in seconds between sending and receiving
-            if 0, the reply is not obtained at all
             defaults to 1 second
 
         Returns
         -------
         response : str
             the response of the device
-            only if delay was not 0
         """
-        self.flushInput() #remove any residual replies
         self.send(message)
-        if delay: #delay not 0.0
-            sleep(delay)
-            return self.receive()
-        else: #delay 0, so don't want reply
-            self.flushInput() #remove any reply
+        sleep(delay)
+        return self.receive()
             
 
-    def command(self, instruction, get_ack=True):
-        """Device.command(instruction[, get_ack]) -> ack
+    def command(self, instruction, delay=delay):
+        """Device.command(instruction[, delay]) -> ack
 
         Send a command to the device and wait for acknowledgment (ACK)
+        Essentially just a wrapper around :meth:`Device.query`
 
         Parameters
         ----------
-        message : str
-            a message to be passed to :func:`Device.send`
-        get_ack : bool, optional
-            if True, the reply is obtained and A
+        same as for :meth:`Device.query`
 
         Returns
         -------
@@ -252,7 +244,7 @@ class Device(Serial):
         :class:`RuntimeError`
             Raises if the reply was something else than 'OK' or 'Err'
         """
-        ack = self.query(instruction)
+        ack = self.query(instruction, delay)
         if ack == 'OK':
             return True
         elif ack == 'Err':
