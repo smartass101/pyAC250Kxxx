@@ -1,0 +1,18 @@
+Python API and command-line program for controlling an AC250Kxxx series power supply
+
+* Installation
+** Local testing
+You can either clone this git repository (=git clone git://github.com/smartass101/pyAC250Kxxx.git=)
+or download it as a Zip archive.
+
+Remeber to set the command-line program executable (=chmod a+x AC250K=) if needed
+** System-wide installation
+Download the ZIP or TAR archive and extract it
+Use the provided =setup.py= install script
+Install by running (as super user or with sudo)
+=python setup.py install=
+* Documentation
+** Command-line program 
+See the output of the =--help= option
+** Python API
+See the output of =pydoc pyAC250Kxxx= or read the source code
