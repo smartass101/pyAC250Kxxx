@@ -91,6 +91,17 @@ def _ctrl_sum(string):
         _sum -= 256
     return _hexify(_sum)
 
+def debug_maybe():
+    """debug_maybe()
+
+    If debug is True, print the rpepresentation of the packet and then its hexdump
+    """
+    if debug:
+        print repr(packet)
+        for char in packet:
+            print char,": ",hex(ord(char))
+
+
 ################################################################
 ################    MAIN CLASSES                ################
 ################################################################
@@ -149,10 +160,8 @@ class Device(Serial):
         packet += _ctrl_sum(packet[1:]) #append the control sum
         packet += '\x0d' # and CR character
         self.write(packet) #send the packet
-        if debug:
-            for char in packet:
-                print char,": ",hex(ord(char))
-
+        debug_maybe()
+        
     def receive(self):
         """Device.receive() -> response
 
@@ -174,26 +183,24 @@ class Device(Serial):
             - when the packet is bad
         """
         packet = self.read(self.inWaiting()) #read in the number of bytes in the receive buffer
-        if debug:
-            for char in packet:
-                print char,": ",hex(ord(char))
+        debug_maybe()
         if packet[0] != '#': #if the packet does not start properly
             raise ValueError("received packet does not start with '#'")
         elif packet[1:3] != self.hexaddress: #if the packet device address is wrong
             #the second and third character is the address
             raise ValueError("received packet from address '" + packet[1:3] + "' (hex), but our device has address '" + self.hexaddress + "' (hex)")
         else: #verything seems to be ok
-            return packet[3:-3] #return the message 
+            return packet[3:-1] #return the message 
 
     def query(self,message):
-        """query(message) -> response
+        """Device.query(message) -> response
 
         Query the device: send a message and get a response
 
         Parameters
         ----------
         message : str
-        a message to be passed to :func:`Device.send`
+            a message to be passed to :func:`Device.send`
 
         Returns
         -------
@@ -214,20 +221,35 @@ class Device(Serial):
                 failures += 1
         return None #is we got beyond the while cycle we have 3 failures
 
-    def set_voltage(self, voltage):
-        """set_voltage(volatge) -> real_voltage
+    def command(self, instruction):
+        """Device.command(instruction)
 
-        Set the voltage output of the device and receive the current voltage
+        Send a command to the device and wait for acknowledgment (ACK)
+
+        Parameters
+        ----------
+        message : str
+            a message to be passed to :func:`Device.send`
+
+        Raises
+        ------
+        :class:`RuntimeError`
+            if ACK is not 'OK', raises with the reported message
+        """
+        self.send(instruction)
+        ack = self.receive()
+        if ack != 'OK':
+            raise RuntimeError("Device reported error: " + ack)
+
+    def set_voltage(self, voltage):
+        """Device.set_voltage(volatge)
+
+        Set the voltage output of the device
 
         Parameters
         ----------
         voltage : int
             the voltage in [V], should be within the device range
-
-        Returns
-        -------
-        real_voltage : int
-            the device responds with the current set voltage
 
         Raises
         ------
@@ -239,7 +261,7 @@ class Device(Serial):
         * actually implement the error detection and raising
         * verify that the return value starts with 'NAP'
         """
-        return int(self.query('NAP{:03d}'.format(voltage))[3:]) #return the current voltage
+        self.command('NAP{:03d}'.format(voltage)) 
         #the response starts with 'NAP'
         
 
