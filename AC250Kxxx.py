@@ -254,27 +254,27 @@ class Device(Serial):
 
     @property
     def voltage(self): #get the voltage
-        return int(self.query('NAP???')[3:]) #reply is 'NAPXXX'
+        return int(self.query('NAP???', 0.1)[3:]) #reply is 'NAPXXX'
     @voltage.setter
     def voltage(self, voltage):
-        self.command('NAP{:03d}'.format(voltage)) 
+        self.command('NAP{:03d}'.format(voltage), 1) #it takes some time for the voltage to change
 
     @property
     def out(self): #get the OUT status as bool
-        if self.query('OUT?')[-1] == '1': #should be 'OUT1'
+        if self.query('OUT?', 0.1)[-1] == '1': #should be 'OUT1'
             return True
         else: #should be 'OUT0'
             return False
     @out.setter
     def out(self, on): #set the OUT status as bool
         if on: #if True
-            self.command('OUT1')
+            self.command('OUT1', 0.1)
         else:
-            self.command('OUT0')
+            self.command('OUT0', 0.1)
 
     @property
     def id(self): #get the ID of the device
-        return self.query('ID?')
+        return self.query('ID?', 1.5)
         
         
 
