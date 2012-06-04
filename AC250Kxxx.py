@@ -91,8 +91,8 @@ def _ctrl_sum(string):
         _sum -= 256
     return _hexify(_sum)
 
-def debug_maybe():
-    """debug_maybe()
+def debug_maybe(packet):
+    """debug_maybe(packet)
 
     If debug is True, print the rpepresentation of the packet and then its hexdump
     """
@@ -158,9 +158,9 @@ class Device(Serial):
         """
         packet = '@' + self.hexaddress + message #start off with the initializer, add the address and message
         packet += _ctrl_sum(packet[1:]) #append the control sum
+        debug_maybe(packet)
         packet += '\x0d' # and CR character
         self.write(packet) #send the packet
-        debug_maybe()
         
     def receive(self):
         """Device.receive() -> response
@@ -183,7 +183,7 @@ class Device(Serial):
             - when the packet is bad
         """
         packet = self.read(self.inWaiting()) #read in the number of bytes in the receive buffer
-        debug_maybe()
+        debug_maybe(packet)
         if packet[0] != '#': #if the packet does not start properly
             raise ValueError("received packet does not start with '#'")
         elif packet[1:3] != self.hexaddress: #if the packet device address is wrong
