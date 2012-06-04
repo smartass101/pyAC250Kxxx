@@ -1,0 +1,30 @@
+#!/usr/bin/python2
+
+from AC250Kxxx import Device
+from argparse import ArgumentParser
+
+parser = ArgumentParser(description="Command-line control of an AC250Kxxx device")
+parser.add_argument("-p", "--port", help="Serial port to use for communication specified as the path to the character device, e.g. /dev/ttyS0", default="/dev/ttyS0", type=str)
+parser.add_argument("-a", "--address", help="Internal address of the device as an integer", default=10, type=int)
+parser.add_argument("-v", "--voltage", help="Voltage to set in Volts", type=int)
+parser.add_argument("-1", "--on", help="Activate the device output", action="store_true")
+parser.add_argument("-0", "--off", help="Deactivate the device output", action="store_true")
+parser.add_argument("-i", "--info", help="Print identification information about the device", action="store_true")
+parser.add_argument("-s", "--status", help="Print the status of the device", action="store_true")
+
+args = parser.parse_args()
+
+dev = Device(args.address, args.port)
+dev.flushInput()
+if args.status:
+    print "Output activated:", dev.out
+    print "Current voltage:", dev.voltage, "V"
+elif args.info:
+    print dev.id
+else:
+    if args.voltage:
+        dev.voltage = args.voltage
+    if args.on:
+        dev.out = True
+    elif args.off:
+        dev.out = False
