@@ -163,12 +163,18 @@ class Device(Serial):
         :class:`ValueError`
             - when address of the :class:`Device` object does not correspond to the device address in the packet
             - if the control sum of the packet does not match the calculated one
-            - when the packet is bad
+            - when the packet is bad (does not start with '#' or does not end with '\r')
+        :class:`RuntimeError`
+            - when no (empty) packet was received
         """
         packet = self.read(self.inWaiting()) #read in the number of bytes in the receive buffer
+        if len(packet) == 0: #nothing received
+            raise RuntimeError("no reply packet received")
         debug_maybe(packet)
         if packet[0] != '#': #if the packet does not start properly
             raise ValueError("received packet does not start with '#'")
+        elif packet[-1] != '\r': #packet not terminated with CR
+            raise ValueError("received packet does not end with '\r'")
         elif packet[1:3] != self.hexaddress: #if the packet device address is wrong
             #the second and third character is the address
             raise ValueError("received packet from address '" + packet[1:3] + "' (hex), but our device has address '" + self.hexaddress + "' (hex)")
