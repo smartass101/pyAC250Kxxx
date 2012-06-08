@@ -240,7 +240,7 @@ class Device(Serial):
         return int(self.query('NAP???', 0.1)[3:]) #reply is 'NAPXXX'
     
     def set_voltage(self, voltage):
-        """Device.set_voltage(voltage)
+        """Device.set_voltage(voltage) -> success
 
         Set the voltage in Volts
 
@@ -248,8 +248,13 @@ class Device(Serial):
         ----------
         voltage : int
             voltage to set in Volts
+
+        Returns
+        -------
+        success : bool
+            True if the command did succeed, False otherwise
         """
-        self.command('NAP%03d' % voltage), 1) #it takes some time for the voltage to change
+        return self.command('NAP%03d' % voltage), 1) #it takes some time for the voltage to change
 
     voltage = property(fget=get_voltage, fset=set_voltage, doc="""Output voltage as an integer in Volts""")
 
@@ -269,7 +274,7 @@ class Device(Serial):
             return False
 
     def set_output(self, status):
-        """Device.set_output(status)
+        """Device.set_output(status) -> success
 
         Set the status of the output
 
@@ -277,11 +282,16 @@ class Device(Serial):
         ----------
         status : bool
             True if output should be activated, False otherwise
+        
+        Returns
+        -------
+        success : bool
+            True if the command did succeed, False otherwise
         """
         if status: #if True
-            self.command('OUT1', 0.1)
+            return self.command('OUT1', 0.1)
         else:
-            self.command('OUT0', 0.1)
+            return self.command('OUT0', 0.1)
             
     output = property(fget=get_output, fset=set_output, doc="""Output status as a Boolean, True if activated, False otherwise""")
         
