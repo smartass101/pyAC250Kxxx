@@ -227,7 +227,7 @@ class Device(Serial):
         else:
             raise RuntimeError("Device reported error: " + ack)
     
-    def get_voltage():
+    def get_voltage(self):
         """Device.get_voltage() -> voltage
 
         Return the current set voltage in Volts
@@ -239,7 +239,7 @@ class Device(Serial):
         """
         return int(self.query('NAP???', 0.1)[3:]) #reply is 'NAPXXX'
     
-    def set_voltage(voltage):
+    def set_voltage(self, voltage):
         """Device.set_voltage(voltage)
 
         Set the voltage in Volts
@@ -253,7 +253,7 @@ class Device(Serial):
 
     voltage = property(fget=get_voltage, fset=set_voltage, doc="""Output voltage as an integer in Volts""")
 
-    def get_output():
+    def get_output(self):
         """Device.get_output() -> status
 
         Return the current status of the output
@@ -268,7 +268,7 @@ class Device(Serial):
         else: #should be 'OUT0'
             return False
 
-    def set_output(status):
+    def set_output(self, status):
         """Device.set_output(status)
 
         Set the status of the output
@@ -284,7 +284,8 @@ class Device(Serial):
             self.command('OUT0', 0.1)
             
     output = property(fget=get_output, fset=set_output, doc="""Output status as a Boolean, True if activated, False otherwise""")
-    def get_identification():
+        
+    def get_identification(self):
         """Device.get_identification() -> identification
 
         Return the identification of the device
