@@ -251,32 +251,75 @@ class Device(Serial):
             return False
         else:
             raise RuntimeError("Device reported error: " + ack)
+    
+    def get_voltage():
+        """get_voltage() -> voltage
 
-    @property
-    def voltage(self): #get the voltage
+        Return the current set voltage in Volts
+
+        Returns
+        -------
+        voltage : int
+            current voltage in Volts
+        """
         return int(self.query('NAP???', 0.1)[3:]) #reply is 'NAPXXX'
-    @voltage.setter
-    def voltage(self, voltage):
+    
+    def set_voltage(voltage):
+        """set_voltage(voltage)
+
+        Set the voltage in Volts
+
+        Parameters
+        ----------
+        voltage : int
+            voltage to set in Volts
+        """
         self.command('NAP{:03d}'.format(voltage), 1) #it takes some time for the voltage to change
 
-    @property
-    def out(self): #get the OUT status as bool
+    voltage = property(fget=get_voltage, fset=set_voltage, doc="""Output voltage as an integer in Volts""")
+
+    def get_output():
+        """get_output() -> status
+
+        Return the current status of the output
+
+        Returns
+        -------
+        status : bool
+            True if output is activated, False otherwise
+        """
         if self.query('OUT?', 0.1)[-1] == '1': #should be 'OUT1'
             return True
         else: #should be 'OUT0'
             return False
-    @out.setter
-    def out(self, on): #set the OUT status as bool
-        if on: #if True
+
+    def set_output(status):
+        """set_output(status)
+
+        Set the status of the output
+
+        Parameters
+        ----------
+        status : bool
+            True if output should be activated, False otherwise
+        """
+        if status: #if True
             self.command('OUT1', 0.1)
         else:
             self.command('OUT0', 0.1)
+            
+    output = property(fget=get_output, fset=set_output, doc="""Output status as a Boolean, True if activated, False otherwise""")
+    def get_identification():
+        """get_identification() -> identification
 
-    @property
-    def id(self): #get the ID of the device
+        Return the identification of the device
+
+        Returns
+        -------
+        identification : str
+            name of the device, model and revision
+        """
         return self.query('ID?', 1.5)
-        
-        
 
-
+    identification = property(fget=get_identification, doc="""Device identifiaction as a string""")
         

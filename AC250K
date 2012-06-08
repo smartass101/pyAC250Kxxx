@@ -17,14 +17,14 @@ args = parser.parse_args()
 dev = Device(args.address, args.port)
 dev.flushInput()
 if args.status:
-    print "Output activated:", dev.out
+    print "Output activated:", dev.output
     print "Current voltage:", dev.voltage, "V"
 elif args.info:
-    print dev.id
+    print dev.identification
 else:
     if args.voltage:
         dev.voltage = args.voltage
     if args.on:
-        dev.out = True
+        dev.output = True
     elif args.off:
-        dev.out = False
+        dev.output = False
