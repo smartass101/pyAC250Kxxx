@@ -36,37 +36,12 @@ def _hexify(number):
     hexstring_repr : str
         the returned hexstring has no leading 'x' or '0x' and is always at least least two characters long (padding with leading '0')
         it is also uppercase
-
-    See Also
-    --------
-    :func:`_unhexify` : inverse function
     """
     #if number <0 : number*=-1 #TODO not sure if useful
     code=hex(number)[2:] #cut off the '0x' part
     if number < 16 : #if the number as hexadecimal is < 16 the hex string will have just one char
         code="0"+code# the hexadecimal address must have two characters
     return code.upper() #return an uppercase string
-
-def _unhexify(hexstring):
-    """_unhexify(hexstring_repr) -> number
-    
-    Translate an uppercase string representing a hexadecimal number to the number in decimal.
-
-    Parameters
-    ----------
-    hexstring_repr : str
-        the hexadecimal string  should _not_ start with 'x' or '\\x' or anything similar, only leading '0x' is acceptable
-
-    Returns
-    -------
-    number : int
-        the number being represented by the hexstring
-
-    See Also
-    --------
-    :func:`_hexify` : inverse function
-    """
-    return int(hexstring, 16) #return the number represented in hexadecimal
 
 def _ctrl_sum(string):
     """_ctrl_sum(string) -> ctrl_sum_hexstring_repr
@@ -90,7 +65,7 @@ def _ctrl_sum(string):
 
     See Also
     --------
-    :func:`_hexify`, :func:`_unhexify` : Hexstring representation of integers as required by the AC250Kxxx communication specification.
+    :func:`_hexify` : Hexstring representation of integers as required by the AC250Kxxx communication specification.
     """
     _sum=0
     for char in string:
