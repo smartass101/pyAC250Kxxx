@@ -260,7 +260,7 @@ class Device(Serial):
         success : bool
             True if the command did succeed, False otherwise
         """
-        return self.command('NAP%03d' % voltage), 1) #it takes some time for the voltage to change
+        return self.command('NAP%03d' % voltage, 1) #it takes some time for the voltage to change
 
     voltage = property(fget=get_voltage, fset=set_voltage, doc="""Output voltage as an integer in Volts""")
 
