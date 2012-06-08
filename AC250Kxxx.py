@@ -249,7 +249,7 @@ class Device(Serial):
         voltage : int
             voltage to set in Volts
         """
-        self.command('NAP{:03d}'.format(voltage), 1) #it takes some time for the voltage to change
+        self.command('NAP%03d' % voltage), 1) #it takes some time for the voltage to change
 
     voltage = property(fget=get_voltage, fset=set_voltage, doc="""Output voltage as an integer in Volts""")
 
