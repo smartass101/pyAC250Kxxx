@@ -14,8 +14,6 @@ from time import sleep
 
 """If True, verbosely print the packets, defaults to False"""
 debug = False
-"""Delay between sending packets and receiving them in seconds for the Device to construct its reply and the voltage to rise"""
-delay = 1
 
 ################################################################
 ################     HELPER FUNCTIONS           ################
@@ -108,7 +106,7 @@ class Device(Serial):
     it is initialized with a baudrate of 9600, bytesize of 8, no bit parity, 1 stopbit and no flow control
     """
     
-    def __init__(self, address=255, serial_port=0):
+    def __init__(self, address=255, serial_port=0, timeout=1.0):
         """Initialize a new Device object with the specified address communicating through the specified serial port.
 
         Parameters
@@ -120,10 +118,13 @@ class Device(Serial):
             number of the serial port to be used for communication
             or the explicit name of the device to be passed to :meth:`serial.Serial.__init__`
             on Linux it's the number X in /dev/ttySX and defaults to 0 (/dev/ttyS0)
+        timeout : float, optional
+            timeout in seconds for reading operations, defaults to 1 second
         """
         super(Device, self).__init__(serial_port, baudrate=9600, bytesize=8, parity='N', stopbits=1, xonxoff=False) #initialize the serial port as required by the specification
         self.address=address #store for later use TODO will it be used later at all? maybe just the hexaddress is enough. but the attribute is for informative purposes too
         self.hexaddress=_hexify(address) #store for usage in packet construction and recieved packets verification
+        self.timeout = timeout
 
     def send(self, message):
         """Device.send(message)
@@ -162,37 +163,30 @@ class Device(Serial):
         ------
         :class:`ValueError`
             - when address of the :class:`Device` object does not correspond to the device address in the packet
-            - if the control sum of the packet does not match the calculated one
-            - when the packet is bad (does not start with '#' or does not end with '\r')
-        :class:`RuntimeError`
-            - when no (empty) packet was received
         """
-        packet = self.read(self.inWaiting()) #read in the number of bytes in the receive buffer
-        if len(packet) == 0: #nothing received
-            raise RuntimeError("no reply packet received")
+        current_char = [""] #empty array to read into
+        while current_char[0] != "#": #wait for reply packet initializing character
+            self.readinto(current_char)
+        packet =  current_char[0] #initialize packet
+        while current_char[0] != "\r": #wait for packet terminating character
+            self.readinto(current_char)
+            packet += current_char
         debug_maybe(packet)
-        if packet[0] != '#': #if the packet does not start properly
-            raise ValueError("received packet does not start with '#'")
-        elif packet[-1] != '\r': #packet not terminated with CR
-            raise ValueError("received packet does not end with '\r'")
         elif packet[1:3] != self.hexaddress: #if the packet device address is wrong
             #the second and third character is the address
             raise ValueError("received packet from address '" + packet[1:3] + "' (hex), but our device has address '" + self.hexaddress + "' (hex)")
         else: #verything seems to be ok
             return packet[3:-1] #return the message 
 
-    def query(self,message, delay=1):
-        """Device.query(message[, delay]) -> response
+    def query(self,message):
+        """Device.query(message) -> response
 
-        Query the device: send a message and get a response with an optional delay.    
+        Query the device: send a message and get a response
 
         Parameters
         ----------
         message : str
             a message to be passed to :meth:`Device.send`
-        delay : float, optional
-            delay in seconds between sending and receiving
-            defaults to 1 second
 
         Returns
         -------
@@ -200,12 +194,11 @@ class Device(Serial):
             the response of the device
         """
         self.send(message)
-        sleep(delay)
         return self.receive()
             
 
-    def command(self, instruction, delay=delay):
-        """Device.command(instruction[, delay]) -> ack
+    def command(self, instruction):
+        """Device.command(instruction) -> ack
 
         Send a command to the device and wait for acknowledgment (ACK)
         Essentially just a wrapper around :meth:`Device.query`
@@ -225,7 +218,7 @@ class Device(Serial):
         :class:`RuntimeError`
             Raises if the reply was something else than 'OK' or 'Err'
         """
-        ack = self.query(instruction, delay)
+        ack = self.query(instruction)
         if ack == 'OK':
             return True
         elif ack == 'Err':
@@ -243,7 +236,7 @@ class Device(Serial):
         voltage : int
             current voltage in Volts
         """
-        return int(self.query('NAP???', 0.1)[3:]) #reply is 'NAPXXX'
+        return int(self.query('NAP???')[3:]) #reply is 'NAPXXX'
     
     def set_voltage(self, voltage):
         """Device.set_voltage(voltage) -> success
@@ -260,7 +253,7 @@ class Device(Serial):
         success : bool
             True if the command did succeed, False otherwise
         """
-        return self.command('NAP%03d' % voltage, 1) #it takes some time for the voltage to change
+        return self.command('NAP%03d' % voltage) #it takes some time for the voltage to change
 
     voltage = property(fget=get_voltage, fset=set_voltage, doc="""Output voltage as an integer in Volts""")
 
@@ -274,7 +267,7 @@ class Device(Serial):
         status : bool
             True if output is activated, False otherwise
         """
-        if self.query('OUT?', 0.1)[-1] == '1': #should be 'OUT1'
+        if self.query('OUT?')[-1] == '1': #should be 'OUT1'
             return True
         else: #should be 'OUT0'
             return False
@@ -295,9 +288,9 @@ class Device(Serial):
             True if the command did succeed, False otherwise
         """
         if status: #if True
-            return self.command('OUT1', 0.1)
+            return self.command('OUT1')
         else:
-            return self.command('OUT0', 0.1)
+            return self.command('OUT0')
             
     output = property(fget=get_output, fset=set_output, doc="""Output status as a Boolean, True if activated, False otherwise""")
         
@@ -311,7 +304,7 @@ class Device(Serial):
         identification : str
             name of the device, model and revision
         """
-        return self.query('ID?', 1.5)
+        return self.query('ID?')
 
     identification = property(fget=get_identification, doc="""Device identifiaction as a string""")
         
