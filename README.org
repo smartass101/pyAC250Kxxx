@@ -13,6 +13,8 @@ Install by running (as super user or with sudo)
 =python setup.py install=
 * Documentation
 ** Command-line program 
+The =AC250K= command-line program can be used for easy communication with a device.
+It is installed together with the Python module and could be considered a reference implementation.
 See the output of the =--help= option
 ** Python API
 See the output of =pydoc pyAC250Kxxx= or read the source code
