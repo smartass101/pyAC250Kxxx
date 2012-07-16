@@ -164,14 +164,13 @@ class Device(Serial):
         :class:`ValueError`
             - when address of the :class:`Device` object does not correspond to the device address in the packet
         """
-        current_char = bytearray(' ') #empty array to read into
+        current_char = '' #empty character to read into
         while current_char != "#": #wait for reply packet initializing character
-            self.readinto(current_char)
+            current_char = self.read(1)
         packet = current_char #initialize packet
         while current_char != "\r": #wait for packet terminating character
-            self.readinto(current_char)
-            packet.extend(current_char)
-        packet = str(packet)
+            current_char = self.read(1)
+            packet += current_char
         debug_maybe(packet)
         if packet[1:3] != self.hexaddress: #if the packet device address is wrong
             #the second and third character is the address
