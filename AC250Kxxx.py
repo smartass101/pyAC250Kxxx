@@ -172,7 +172,7 @@ class Device(Serial):
             self.readinto(current_char)
             packet += current_char
         debug_maybe(packet)
-        elif packet[1:3] != self.hexaddress: #if the packet device address is wrong
+        if packet[1:3] != self.hexaddress: #if the packet device address is wrong
             #the second and third character is the address
             raise ValueError("received packet from address '" + packet[1:3] + "' (hex), but our device has address '" + self.hexaddress + "' (hex)")
         else: #verything seems to be ok
