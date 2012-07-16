@@ -75,7 +75,7 @@ def _ctrl_sum(string):
 def debug_maybe(packet):
     """debug_maybe(packet)
 
-    If debug is True, print the rpepresentation of the packet and then its hexdump
+    If debug is True, print the representation of the packet and then its hexdump
     """
     if debug:
         print repr(packet)
@@ -164,13 +164,14 @@ class Device(Serial):
         :class:`ValueError`
             - when address of the :class:`Device` object does not correspond to the device address in the packet
         """
-        current_char = [""] #empty array to read into
-        while current_char[0] != "#": #wait for reply packet initializing character
+        current_char = bytearray(' ') #empty array to read into
+        while current_char != "#": #wait for reply packet initializing character
             self.readinto(current_char)
-        packet =  current_char[0] #initialize packet
-        while current_char[0] != "\r": #wait for packet terminating character
+        packet = current_char #initialize packet
+        while current_char != "\r": #wait for packet terminating character
             self.readinto(current_char)
-            packet += current_char
+            packet.extend(current_char)
+        packet = str(packet)
         debug_maybe(packet)
         if packet[1:3] != self.hexaddress: #if the packet device address is wrong
             #the second and third character is the address
