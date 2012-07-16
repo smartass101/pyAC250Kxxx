@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 
 from AC250Kxxx import Device
 from argparse import ArgumentParser
